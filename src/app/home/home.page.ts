@@ -1,18 +1,35 @@
-import { Component } from '@angular/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Platform } from '@ionic/angular';
-import { HttpClient } from '@angular/common/http';
-import { Preferences } from '@capacitor/preferences';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Component } from '@angular/core';
+import { 
+  IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, 
+  IonAvatar, IonLabel, IonButtons, IonButton, IonIcon, IonFooter, 
+  IonGrid, IonRow, IonCol, IonThumbnail, IonSearchbar, IonInput, IonModal,
+  IonBadge, IonSegment, IonSegmentButton
+} from '@ionic/angular/standalone';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Preferences } from '@capacitor/preferences';
+import { environment } from '../../environments/environment';
+import { Browser } from '@capacitor/browser';
 
 @Component({
   selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
-  standalone: false
+  templateUrl: './home.page.html',
+  styleUrls: ['./home.page.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem,
+    IonAvatar, IonLabel, IonButtons, IonButton, IonIcon, IonFooter,
+    IonGrid, IonRow, IonCol, IonThumbnail, IonSearchbar, IonInput, IonModal,
+    IonBadge, IonSegment, IonSegmentButton
+  ]
 })
 export class HomePage {
-  songs: { name: string; path: string; metadata?: any }[] = [];
+  songs: any[] = [];
   streamingSongs: any[] = [];
   playlists: any[] = [];
   currentPlaylist: any = null;
@@ -33,39 +50,98 @@ export class HomePage {
     await this.loadPlaylists();
   }
 
-  async loadAudioFiles() {
-    try {
-      const result = await Filesystem.readdir({
-        path: '',
-        directory: Directory.ExternalStorage,
-      });
 
-      const supportedFormats = ['.mp3', '.m4a', '.aac', '.wav', '.ogg', '.flac', '.opus'];
+  async requestStoragePermission() {
+    try {
+      // 1. Check current permissions
+      const status = await Filesystem.checkPermissions();
       
-      this.songs = [];
-      
-      for (const file of result.files) {
-        const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-        if (supportedFormats.includes(ext)) {
-          const songPath = `/storage/emulated/0/${file.name}`;
-          this.songs.push({
-            name: file.name,
-            path: songPath,
-            metadata: {
-              title: this.extractTitleFromFileName(file.name),
-              artist: 'Unknown Artist',
-              picture: 'assets/default-album.png'
-            }
-          });
-        }
+      // 2. Already granted
+      if (status.publicStorage === 'granted') {
+        return true;
       }
-    } catch (error) {
-      console.error('Failed to read storage:', error);
+      
+      // 3. Request permission
+      const newStatus = await Filesystem.requestPermissions();
+      
+      // 4. Still not granted - guide user manually
+      if (newStatus.publicStorage !== 'granted') {
+        if (confirm('Please enable storage permissions in Android settings')) {
+          // Open device settings page
+          await Browser.open({ url: 'android.settings.APPLICATION_DETAILS_SETTINGS' });
+        }
+        return false;
+      }
+      
+      return true;
+    } catch (err) {
+      console.error('Permission error:', err);
+      return false;
     }
   }
 
+  async loadAudioFiles() {
+    try {
+      // 1. Request permission
+      const hasPermission = await this.requestStoragePermission();
+      if (!hasPermission) return;
+
+      // 2. Scan directories (with error handling)
+      const musicDirs = [
+        { path: 'Music', dir: Directory.ExternalStorage },
+        { path: 'Download', dir: Directory.ExternalStorage },
+        { path: '', dir: Directory.Documents } // Fallback
+      ];
+
+      this.songs = [];
+
+      for (const location of musicDirs) {
+        try {
+          const result = await Filesystem.readdir({
+            path: location.path,
+            directory: location.dir
+          });
+
+          // Process files
+          result.files.forEach(async file => {
+            if (/\.(mp3|m4a|wav|flac)$/i.test(file.name)) {
+              this.songs.push({
+                name: file.name,
+                path: `${location.path}/${file.name}`,
+                uri: await this.getFileUri(location.path, file.name, location.dir),
+                metadata: {
+                  title: file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '),
+                  artist: 'Unknown Artist',
+                  cover: 'assets/default-album.png'
+                }
+              });
+            }
+          });
+        } catch (error) {
+          console.warn(`Skipped ${location.path}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load files:', error);
+    }
+  }
+
+
+  
+  async getFileUri(filename: string, path: string, directory: Directory): Promise<string> {
+    const file = await Filesystem.getUri({
+      path: path ? `${path}/${filename}` : filename,
+      directory: directory
+    });
+    return file.uri;
+  }
+
   private extractTitleFromFileName(filename: string): string {
-    return filename.substring(0, filename.lastIndexOf('.')).replace(/[_-]/g, ' ');
+    return filename
+      .substring(0, filename.lastIndexOf('.'))
+      .replace(/[_-]/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
+      .trim();
   }
 
   async playSong(song: any) {
@@ -75,7 +151,18 @@ export class HomePage {
         this.audio = null;
       }
 
-      this.audio = new Audio(song.path);
+      // For Android, we need to use the Filesystem API to read the file
+      if (this.platform.is('android') && song.path.startsWith('file://')) {
+        const file = await Filesystem.readFile({
+          path: song.path.replace('file://', ''),
+          directory: Directory.ExternalStorage
+        });
+        const audioBlob = new Blob([file.data], { type: 'audio/mp3' });
+        this.audio = new Audio(URL.createObjectURL(audioBlob));
+      } else {
+        this.audio = new Audio(song.path);
+      }
+
       this.audio.play();
       this.nowPlaying = {
         title: song.metadata.title,
@@ -88,9 +175,13 @@ export class HomePage {
       };
     } catch (error) {
       console.error('Error playing file:', error);
+      // Fallback to direct audio source if Filesystem read fails
+      this.audio = new Audio(song.path);
+      this.audio.play();
     }
   }
 
+  // ... [keep all your other existing methods exactly as they were]
   handleSearchChange(event: any) {
     this.searchQuery = event.detail.value || '';
     this.searchDeezer(this.searchQuery);
@@ -101,13 +192,22 @@ export class HomePage {
     
     this.isSearching = true;
     try {
-      const response: any = await this.http.get(`https://api.deezer.com/search?q=${query}`).toPromise();
+      const headers = new HttpHeaders({
+        'X-RapidAPI-Key': environment.rapidApiKey,
+        'X-RapidAPI-Host': environment.rapidApiHost
+      });
+
+      const response: any = await this.http.get(`${environment.deezerApiUrl}/search`, {
+        headers,
+        params: { q: query }
+      }).toPromise();
+
       this.streamingSongs = response.data.map((track: any) => ({
         id: track.id,
         title: track.title,
         artist: track.artist.name,
         album: track.album.title,
-        cover: track.album.cover_medium,
+        cover: track.album.cover_medium || 'assets/default-album.png',
         preview: track.preview
       }));
     } catch (error) {

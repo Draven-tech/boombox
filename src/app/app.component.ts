@@ -7,5 +7,13 @@ import { Component } from '@angular/core';
   standalone: false,
 })
 export class AppComponent {
+  platform: any;
   constructor() {}
+
+  initializeApp() {
+  console.log('App initializing...'); // Check if this appears
+  this.platform.ready().then(() => {
+    console.log('Platform ready!'); // Check this too
+  });
+}
 }

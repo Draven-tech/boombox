@@ -1,16 +1,17 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular'; // ✅ Import this
+
+import { HomePageRoutingModule } from './home-routing.module';
 import { HomePage } from './home.page';
-import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   imports: [
     CommonModule,
-    IonicModule,
-    HttpClientModule,
-    FormsModule
+    FormsModule,
+    IonicModule,           // ✅ Make sure this is included
+    HomePageRoutingModule
   ],
   declarations: [HomePage]
 })

@@ -8,15 +8,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 3000,
       launchAutoHide: true,
-      backgroundColor: "#1a1a1a",
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP",
-      showSpinner: true,
-      androidSpinnerStyle: "large",
-      iosSpinnerStyle: "small",
-      spinnerColor: "#999999",
-      splashFullScreen: true,
-      splashImmersive: true,
+      backgroundColor: "#1a1a1a" // Try changing to "#FFFFFF"
     }
   },
 };
