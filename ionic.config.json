@@ -1,0 +1,7 @@
+{
+  "name": "boombox",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
