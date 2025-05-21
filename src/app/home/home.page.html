@@ -123,7 +123,7 @@
       <ion-list lines="none">
         <ion-item *ngFor="let song of currentPlaylist.songs; let i = index" (click)="playSong(song)" button detail>
           <ion-avatar slot="start">
-            <img [src]="song.cover || song.metadata.picture" alt="Album cover">
+          <img [src]="song.metadata?.picture || 'assets/default-album.png'" alt="Album cover">
           </ion-avatar>
           <ion-label>
             <h3>{{ song.title || song.metadata.title }}</h3>
