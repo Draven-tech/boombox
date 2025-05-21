@@ -4,7 +4,11 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content [fullscreen]="true">
+  <!-- Hidden file input -->
+  <input #fileInput type="file" accept="audio/*" multiple style="display: none" 
+         (change)="handleFileInput($event)">
+
   <!-- Modern Tab Selector -->
   <ion-segment [(ngModel)]="currentTab" color="primary">
     <ion-segment-button value="local">
@@ -21,23 +25,38 @@
     </ion-segment-button>
   </ion-segment>
 
-  <!-- Local Music Tab -->
-  <div *ngIf="currentTab === 'local'" class="tab-content">
+<!-- Local Music Tab -->
+<div *ngIf="currentTab === 'local'" class="tab-content">
+  <div class="ion-padding">
+    <!-- Add Music Button -->
+    <ion-button expand="block" (click)="triggerFileInput()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      Add Music Files
+    </ion-button>
+
+    <!-- Local Songs List -->
     <ion-list lines="none">
-      <ion-item *ngFor="let song of songs" (click)="playSong(song)" button detail>
+      <ion-item *ngFor="let song of songs; let i = index" (click)="playSong(song)" button detail>
         <ion-avatar slot="start">
-          <img [src]="song.metadata.picture" alt="Album cover">
+          <img [src]="song.metadata.cover" alt="Album cover">
         </ion-avatar>
         <ion-label>
           <h3>{{ song.metadata.title }}</h3>
           <p>{{ song.metadata.artist }}</p>
         </ion-label>
-        <ion-button slot="end" fill="clear" color="primary" (click)="$event.stopPropagation(); addToPlaylistDialog(song)">
+        <ion-button slot="end" fill="clear" color="primary"
+                    (click)="$event.stopPropagation(); addToPlaylistDialog(song)">
           <ion-icon name="add" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button slot="end" fill="clear" color="danger"
+                    (click)="$event.stopPropagation(); removeSong(i)">
+          <ion-icon name="trash" slot="icon-only"></ion-icon>
         </ion-button>
       </ion-item>
     </ion-list>
   </div>
+</div>
+
 
   <!-- Streaming Tab -->
   <div *ngIf="currentTab === 'stream'" class="tab-content">
@@ -102,7 +121,7 @@
       </ion-toolbar>
       
       <ion-list lines="none">
-        <ion-item *ngFor="let song of currentPlaylist.songs; let i = index" button detail>
+        <ion-item *ngFor="let song of currentPlaylist.songs; let i = index" (click)="playSong(song)" button detail>
           <ion-avatar slot="start">
             <img [src]="song.cover || song.metadata.picture" alt="Album cover">
           </ion-avatar>
@@ -135,11 +154,19 @@
             <h3>{{ nowPlaying.title }}</h3>
             <p>{{ nowPlaying.artist }}</p>
           </ion-label>
+          <ion-progress-bar 
+            [value]="currentProgress / 100" 
+            (click)="seekAudio($event)">
+          </ion-progress-bar>
+          <div class="time-display">
+            <span>{{ formatTime(nowPlaying.currentTime) }}</span>
+            <span class="duration">{{ formatTime(nowPlaying.duration) }}</span>
+          </div>
         </ion-col>
         <ion-col size="3" class="ion-text-center">
           <ion-buttons>
-            <ion-button (click)="pause()" fill="clear">
-              <ion-icon name="pause" color="primary"></ion-icon>
+            <ion-button (click)="togglePlayPause()" fill="clear">
+              <ion-icon [name]="isPlaying ? 'pause' : 'play'" color="primary"></ion-icon>
             </ion-button>
             <ion-button (click)="stop()" fill="clear">
               <ion-icon name="stop" color="primary"></ion-icon>

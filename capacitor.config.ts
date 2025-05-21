@@ -9,6 +9,9 @@ const config: CapacitorConfig = {
       launchShowDuration: 3000,
       launchAutoHide: true,
       backgroundColor: "#1a1a1a" // Try changing to "#FFFFFF"
+    },
+    FilePicker: {
+      types: ['public.audio'] // iOS-specific audio type
     }
   },
 };

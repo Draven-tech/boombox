@@ -1,4 +1,4 @@
-/* Modern Color Scheme */
+/* Variables */
 :root {
   --primary: #4361ee;
   --secondary: #3a0ca3;
@@ -7,27 +7,61 @@
   --dark: #212529;
 }
 
-/* App Structure */
-ion-app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-}
-
+/* Content Background with Image */
 ion-content {
-  --background: transparent;
+  --background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url('/src/assets/bg.jpg') no-repeat center center / cover;
+  color: white;
   --padding-top: 8px;
-  --padding-bottom: 80px; /* Space for now-playing bar */
+  --padding-bottom: 80px;
   --padding-start: 16px;
   --padding-end: 16px;
   padding-top: 8px !important;
 }
 
-/* Header Styling */
+/* Items inside ion-content */
+ion-content ion-item {
+  --background: rgba(255, 255, 255, 0.1);
+  --color: white;
+  backdrop-filter: blur(10px);
+  margin-bottom: 8px;
+  border-radius: 12px;
+}
+
+ion-item {
+  ion-button {
+    margin-left: 8px;
+  }
+}
+
+/* Segment Styling */
+ion-segment {
+  --background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 4px;
+  margin: 16px 0 24px;
+}
+
+ion-segment-button {
+  --color: rgba(255, 255, 255, 0.6);
+  --color-checked: white;
+  --indicator-color: var(--accent);
+  --border-radius: 12px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+
+  ion-label {
+    margin: 4px 0;
+  }
+}
+
+/* Header */
 ion-header {
   background: var(--primary);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 ion-toolbar {
@@ -40,28 +74,7 @@ ion-title {
   letter-spacing: 0.5px;
 }
 
-/* Segment Control - Modern Tabs */
-ion-segment {
-  --background: transparent;
-  margin: 16px 0 24px;
-}
-
-ion-segment-button {
-  --color: rgba(255,255,255,0.6);
-  --color-checked: white;
-  --indicator-color: var(--accent);
-  --border-radius: 12px;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  
-  ion-label {
-    margin: 4px 0;
-  }
-}
-
-/* Card-like List Items */
+/* List Items (Card Style) */
 ion-list {
   background: transparent;
   padding: 0;
@@ -74,22 +87,23 @@ ion-item {
   --padding-end: 16px;
   --inner-padding-end: 8px;
   margin-bottom: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease;
-  
+
   &:active {
     transform: scale(0.98);
   }
 }
 
 /* Media Elements */
-ion-avatar, ion-thumbnail {
+ion-avatar,
+ion-thumbnail {
   --size: 56px;
   --border-radius: 12px;
   margin-inline-end: 16px;
   border: 2px solid white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
   img {
     object-fit: cover;
     width: 100%;
@@ -97,16 +111,17 @@ ion-avatar, ion-thumbnail {
   }
 }
 
-/* Searchbar Styling */
+/* Searchbar */
 ion-searchbar {
   --background: white;
+  --color: black;
   --border-radius: 12px;
-  --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 0;
   margin-bottom: 20px;
 }
 
-/* Now Playing Bar - Fixed at Bottom */
+/* Now Playing Footer */
 ion-footer {
   position: fixed;
   bottom: 0;
@@ -114,53 +129,79 @@ ion-footer {
   right: 0;
   padding: 0;
   z-index: 100;
-  
-  ion-toolbar {
-    --background: white;
-    --border-color: rgba(0,0,0,0.05);
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
-    padding: 8px 0;
-  }
-  
+  background: transparent;
+  backdrop-filter: blur(10px);
+}
+
+ion-footer ion-toolbar {
+  --background: rgba(255, 255, 255, 0.2);
+  --border-color: transparent;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+
+
   ion-thumbnail {
     --size: 48px;
     margin: 0;
+
+    img {
+      border-radius: 8px;
+    }
   }
-  
+
   ion-label {
     h4 {
       font-weight: 600;
       margin-bottom: 4px;
     }
-    
+
     p {
       color: var(--ion-color-medium);
       font-size: 0.9em;
     }
   }
-  
-  ion-buttons {
-    ion-button {
-      --padding-start: 8px;
-      --padding-end: 8px;
-    }
+
+  ion-buttons ion-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
   }
 }
 
-/* Playlist Modal */
+/* Progress Bar */
+ion-progress-bar {
+  height: 4px;
+  --progress-background: var(--ion-color-primary);
+  --buffer-background: var(--ion-color-light-shade);
+}
+
+/* Time Display */
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+  margin-top: 4px;
+}
+
+.duration {
+  color: var(--ion-color-medium);
+}
+
+/* Modal */
 ion-modal {
   --width: 90%;
   --height: 60%;
   --border-radius: 24px;
-  --box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  
+  --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
   ion-toolbar {
     --background: var(--primary);
     --color: white;
   }
 }
 
-/* Badges & Buttons */
+/* Buttons & Badges */
 ion-badge {
   --background: var(--accent);
   --color: white;
@@ -172,28 +213,51 @@ ion-button {
   --border-radius: 8px;
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #3a0ca3;
-    --secondary: #4361ee;
-    --light: #1a1a1a;
-    --dark: #f8f9fa;
+/* Now Playing Footer Custom Elements */
+.now-playing-info {
+  h3 {
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  
-  ion-content {
-    background: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  
-  ion-item {
-    --background: #2d2d2d;
-  }
-  
-  ion-searchbar {
-    --background: #2d2d2d;
-  }
-  
-  ion-footer ion-toolbar {
-    --background: #252525;
-  }
+}
+
+.album-cover {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-left: 8px;
+}
+
+.song-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.song-title {
+  font-weight: bold;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-artist {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
